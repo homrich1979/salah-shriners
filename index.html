@@ -566,6 +566,11 @@ p  { line-height: 1.78; color: var(--text-muted); }
   line-height: 1;
   margin-bottom: 8px;
 }
+.stat-suffix {
+  font-size: 0.5em;
+  font-weight: 700;
+  vertical-align: baseline;
+}
 .stat-l {
   font-size: 0.82rem;
   font-weight: 600;
@@ -3090,12 +3095,13 @@ function animateCount(el) {
   const target = +el.dataset.target;
   const dur    = target > 500 ? 3800 : 2800;
   const start  = performance.now();
+  const render = n => n.toLocaleString('pt-BR') + '<span class="stat-suffix">' + statSuffix(el) + '</span>';
   (function tick(now) {
     const p = Math.min((now - start) / dur, 1);
     const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(eased * target).toLocaleString('pt-BR') + statSuffix(el);
+    el.innerHTML = render(Math.round(eased * target));
     if (p < 1) requestAnimationFrame(tick);
-    else { el.textContent = target.toLocaleString('pt-BR') + statSuffix(el); el.dataset.animated = '1'; }
+    else { el.innerHTML = render(target); el.dataset.animated = '1'; }
   })(start);
 }
 const statsObs = new IntersectionObserver(entries => {
@@ -5831,7 +5837,7 @@ function setLang(lang) {
     if (el.dataset.animated === '1') {
       const key = el.dataset.suffixI18n;
       const sfx = (t[key] !== undefined) ? t[key] : (el.dataset.suffix || '');
-      el.textContent = (+el.dataset.target).toLocaleString('pt-BR') + sfx;
+      el.innerHTML = (+el.dataset.target).toLocaleString('pt-BR') + '<span class="stat-suffix">' + sfx + '</span>';
     }
   });
 
