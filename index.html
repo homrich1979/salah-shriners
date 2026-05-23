@@ -2225,7 +2225,7 @@ footer {
         <span class="stat-l" data-i18n="stats.instituicoes">Instituições Shriners</span>
       </div>
       <div class="stat-cell reveal d4">
-        <span class="stat-n" data-target="195" data-suffix=" mil+">0</span>
+        <span class="stat-n" data-target="195" data-suffix=" mil+" data-suffix-i18n="stats.membrosSuffix">0</span>
         <span class="stat-l" data-i18n="stats.membros">Membros no Mundo</span>
       </div>
     </div>
@@ -3078,17 +3078,24 @@ const io = new IntersectionObserver(entries => {
 document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
 /* ---- COUNTER ANIMATION ---- */
+function statSuffix(el) {
+  const key = el.dataset.suffixI18n;
+  if (key && typeof I18N !== 'undefined' && typeof currentLang !== 'undefined'
+      && I18N[currentLang] && I18N[currentLang][key] !== undefined) {
+    return I18N[currentLang][key];
+  }
+  return el.dataset.suffix || '';
+}
 function animateCount(el) {
   const target = +el.dataset.target;
-  const suffix = el.dataset.suffix || '';
   const dur    = target > 500 ? 3800 : 2800;
   const start  = performance.now();
   (function tick(now) {
     const p = Math.min((now - start) / dur, 1);
     const eased = 1 - Math.pow(1 - p, 3);
-    el.textContent = Math.round(eased * target).toLocaleString('pt-BR') + suffix;
+    el.textContent = Math.round(eased * target).toLocaleString('pt-BR') + statSuffix(el);
     if (p < 1) requestAnimationFrame(tick);
-    else el.textContent = target.toLocaleString('pt-BR') + suffix;
+    else { el.textContent = target.toLocaleString('pt-BR') + statSuffix(el); el.dataset.animated = '1'; }
   })(start);
 }
 const statsObs = new IntersectionObserver(entries => {
@@ -4958,6 +4965,7 @@ const I18N = {
     'stats.paises': 'Países',
     'stats.instituicoes': 'Instituições Shriners',
     'stats.membros': 'Membros no Mundo',
+    'stats.membrosSuffix': ' mil+',
 
     'pilares.1.titulo': 'Fraternidade',
     'pilares.1.texto': 'Ser Shriner também é celebrar a vida. Com mais de 7.000 clubes e unidades em todo o mundo, os Shriners oferecem inúmeras oportunidades de companheirismo, diversão e participação em atividades que fortalecem nossos laços de amizade.',
@@ -5129,6 +5137,7 @@ const I18N = {
     'stats.paises': 'Countries',
     'stats.instituicoes': 'Shriners Institutions',
     'stats.membros': 'Members Worldwide',
+    'stats.membrosSuffix': 'K+',
 
     // Official description from shrinersinternational.org fun-and-fellowship page
     'pilares.1.titulo': 'Fraternity',
@@ -5311,6 +5320,7 @@ const I18N = {
     'stats.paises': 'Países',
     'stats.instituicoes': 'Instituciones Shriners',
     'stats.membros': 'Miembros en el Mundo',
+    'stats.membrosSuffix': ' mil+',
 
     // Official descriptions from shrinersinternational.org/es
     'pilares.1.titulo': 'Fraternidad',
@@ -5486,6 +5496,7 @@ const I18N = {
     'stats.paises': 'Pays',
     'stats.instituicoes': 'Institutions Shriners',
     'stats.membros': 'Membres dans le Monde',
+    'stats.membrosSuffix': 'K+',
 
     'pilares.1.titulo': 'Fraternité',
     'pilares.1.texto': "Être Shriner, c'est aussi célébrer la vie. Avec plus de 7 000 clubs et unités dans le monde entier, les Shriners offrent d'innombrables opportunités de camaraderie, de plaisir et d'activités qui renforcent les liens d'amitié.",
@@ -5651,6 +5662,7 @@ const I18N = {
     'stats.paises': 'Länder',
     'stats.instituicoes': 'Shriners-Institutionen',
     'stats.membros': 'Mitglieder weltweit',
+    'stats.membrosSuffix': 'K+',
 
     'pilares.1.titulo': 'Bruderschaft',
     'pilares.1.texto': 'Shriner zu sein bedeutet auch, das Leben zu feiern. Mit mehr als 7.000 Clubs und Einheiten weltweit bieten die Shriners unzählige Möglichkeiten zur Kameradschaft, zum Vergnügen und zu Aktivitäten, die Freundschaftsbande stärken.',
@@ -5812,6 +5824,15 @@ function setLang(lang) {
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
     const key = el.getAttribute('data-i18n-placeholder');
     if (t[key] !== undefined) el.placeholder = t[key];
+  });
+
+  // Re-apply localized suffix to stat counters that already finished animating
+  document.querySelectorAll('[data-suffix-i18n]').forEach(el => {
+    if (el.dataset.animated === '1') {
+      const key = el.dataset.suffixI18n;
+      const sfx = (t[key] !== undefined) ? t[key] : (el.dataset.suffix || '');
+      el.textContent = (+el.dataset.target).toLocaleString('pt-BR') + sfx;
+    }
   });
 
   // Update <select> options text
