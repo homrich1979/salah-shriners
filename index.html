@@ -6884,6 +6884,10 @@ if ('serviceWorker' in navigator) {
     esc = esc.replace(/\b([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/g, function(m) {
       return '<a href="mailto:' + m + '" class="article-link">' + m + '</a>';
     });
+    // Restaura formatacao inline intencional escrita no editor (b, i, u, s, mark, br)
+    // — o escape acima protege contra XSS; aqui so voltam tags sem atributos.
+    esc = esc.replace(/&amp;nbsp;/g, '&nbsp;')
+             .replace(/&lt;(\/?)(b|strong|i|em|u|s|mark|br)&gt;/gi, function(_m, bar, tag){ return '<' + bar + tag.toLowerCase() + '>'; });
     return esc;
   }
   window.__linkify = linkify;
